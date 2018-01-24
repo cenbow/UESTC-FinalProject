@@ -16,7 +16,7 @@ which(str_count(itjz$invests,",") == max(str_count(itjz$invests,","))) #mobike &
 # create a company list with duplicated entries removed
 itjz1 <- itjz[which(!duplicated(itjz$company)),]
 itjz2 <- itjz1[,c(1,7:8)] # keep company info only
-# clean location variable, 水平有限，请多担待
+# clean location variable, 水平有限，一行写不来，请多担待
 loc <- gsub('"','',itjz1[,9]) 
 loc <- gsub('\\[','',loc)
 loc <- gsub('\\]','',loc)
