@@ -28,6 +28,7 @@ itjz2[,6] <- itjz1[,10] # company descriptions
 for (i in 7:86) {itjz2[,i] <- "NA"}
 name <- read.xlsx("../../Desktop/variable_name.xlsx", colNames = F)
 colnames(itjz2) <- name[,1]
+itjz3 <- itjz2
 
 # step 2: ======================================================================
 # add info for each round to companies
@@ -40,6 +41,7 @@ for (i in 1:length(itjz$company)) {
   m <- which(itjz2[,1] == itjz[i,1]) # which company
   n <- which(new_roundLabels == itjz[i,2]) # which round
   itjz2[m,((n-1)*4+7):((n-1)*4+10)] <- itjz[i,c(6,3:5)]
+  if (i %% 20 == 0) {print(paste0(i,"completed"))}
 }
 
 # step 3: ======================================================================
@@ -51,7 +53,7 @@ for (i in 1:length(itjz$company)) {
   fh <- gsub("\\{","",fh)
   l <- strsplit(fh,"\\},") # string split into a list
   l <- l[[1]]
-  m <- which(itjz2[,1] == itjz[i,1]) # which company
+  m <- which(itjz3[,1] == itjz[i,1]) # which company
   # successfully extract finan_hist into list
   for (j in 1:length(l)) {
     #round
@@ -66,8 +68,23 @@ for (i in 1:length(itjz$company)) {
     #investor
     invest2 <- gsub(".*invests[:punct:]","",l[1])
     n <- which(new_roundLabels == round2) # which round
-    # if(itjz2[m,(n-1)*4+7] != "NA") {print(paste0("error at ",m," & ",n))} # warning if there are repeated information on same round
-    itjz2[m,c((n-1)*4+7,(n-1)*4+8,(n-1)*4+10)] <- c(time2,money2,invest2)
+    # if(itjz3[m,(n-1)*4+7] != "NA") {print(paste0("error at ",m," & ",n))} # warning if there are repeated information on same round
+    itjz3[m,c((n-1)*4+7,(n-1)*4+8,(n-1)*4+10)] <- c(time2,money2,invest2)
   }
-  print(paste0(i,"completed"))
+  if (i %% 20 == 0) {print(paste0(i,"completed"))}
+}
+
+# step 3: ======================================================================
+# merge itjz2 and itjz3 and return repeated locations
+for (i in 1:length(itjz2$company)) {
+  q <- which(itjz2[i,7:86] != "NA")
+  w <- which(itjz3[i,7:86] != "NA")
+  e <- w[which(!(w %in% q))] # e is the location of itjz3 which not found in itjz2
+  r <- w[which(w %in% q)] # r is where itjz3 and itjz2 repeated
+  # if length of r != 0, it means there are repeats
+  if (length(r) != 0) {print(paste0("In row ",i," column ", r, " info repeated"))}
+  # if length of e != 0, then write items found in 3 but not in 2 into blanks in 2
+  if (length(e) != 0) {
+    itjz2[,e] <- itjz3[,e]
+  }
 }
