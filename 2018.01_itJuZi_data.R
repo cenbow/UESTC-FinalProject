@@ -80,11 +80,7 @@ for (i in 1:length(itjz2$company)) {
   q <- which(itjz2[i,7:86] != "NA")
   w <- which(itjz3[i,7:86] != "NA")
   e <- w[which(!(w %in% q))] # e is the location of itjz3 which not found in itjz2
-  r <- w[which(w %in% q)] # r is where itjz3 and itjz2 repeated
-  # if length of r != 0, it means there are repeats
-  if (length(r) != 0) {print(paste0("In row ",i," column ", r, " info repeated"))}
-  # if length of e != 0, then write items found in 3 but not in 2 into blanks in 2
-  if (length(e) != 0) {
-    itjz2[,e] <- itjz3[,e]
-  }
+  if (length(e) != 0) {itjz2[i,e+6] <- itjz3[i,e+6]} # +6 because it starts at 7
 }
+
+write.xlsx(itjz2,"../../Desktop/sorted_data.xlsx")
