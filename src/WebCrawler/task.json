@@ -1,0 +1,10 @@
+{
+    "list": "unprocessed.txt",
+    "period": 10,
+    "pattern": "1/5",
+    "logger": "companies.log",
+    "total": 25140,
+    "output_dir": "companies",
+    "url": "http://www.qichacha.com/search?key=%s",
+    "cookies": "zg_did=%7B%22did%22%3A%20%221622e7097db6d-06a54e314fedef-1a1c7156-1fa400-1622e7097dc48b%22%7D; UM_distinctid=1622e7098e13bf-082636525f5ef2-1a1c7156-1fa400-1622e7098e22d8; OUTFOX_SEARCH_USER_ID_NCOO=1384720687.6445034; Hm_lvt_3456bee468c83cc63fb5147f119f1075=1521197554,1521605402; PHPSESSID=2irqvpobgvo2c0h3uqqjclsq62; CNZZDATA1254842228=1457715382-1521718206-%7C1521718206; hasShow=1; acw_tc=AQAAAPlLln4sCAUAv2ZFfXQB8WqQXtJx; _uab_collina=152172121008632301396086; Hm_lpvt_3456bee468c83cc63fb5147f119f1075=1521721242; zg_de1d1a35bfa24ce29bbf2c7eb17e6c4f=%7B%22sid%22%3A%201521720462925%2C%22updated%22%3A%201521721244071%2C%22info%22%3A%201521605400800%2C%22superProperty%22%3A%20%22%7B%7D%22%2C%22platform%22%3A%20%22%7B%7D%22%2C%22utm%22%3A%20%22%7B%7D%22%2C%22referrerDomain%22%3A%20%22%22%2C%22cuid%22%3A%20%2289473265dd061023b2429c1d6f5e9687%22%7D"
+}

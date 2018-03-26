@@ -1,5 +1,5 @@
-src\WebCrawler\_companies\
-src\WebCrawler\companies\
-src\WebCrawler\scawls\
-src\WebCrawler\invests\
+/src/WebCrawler/_companies
+/src/WebCrawler/companies
+/src/WebCrawler/scawls
+/src/WebCrawler/invests
 
