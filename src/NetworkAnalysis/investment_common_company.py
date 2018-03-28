@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-
+from cached import cached
 import networkx as nx
 import pandas as pd
 
@@ -39,10 +39,10 @@ class Processor:
 
         for idx, row in dataframe.iterrows():
             #Date filter
-            dt = datetime.strptime(row['日期(time)'], "%y.%M.%d")
-
-            if dt.year > 2016:
-                continue
+            # dt = datetime.strptime(row['日期(time)'], "%Y.%m.%d")
+            #
+            # if dt.year > 2016:
+            #     continue
 
             company = row['公司(company)']
             self.companies.add(company)
@@ -60,6 +60,20 @@ class Processor:
 
     def build_graph(self):
         g = nx.Graph()
+        # 二部图： L = {(company, round)}, R={investors}
+        for company in self.data.keys():
+            # g.add_node(company)
+            rounds = self.data[company]
+            for round_ in rounds.keys():
+                # g.add_nodes_from(rounds[round_])
+                g.add_edges_from([((company, round_), invest)
+                                  for invest in rounds[round_]])
+
+                self.graph = g
+        return self.graph
+
+    def build_graph(self):
+        g = nx.Graph()
         for company in self.data.keys():
             # g.add_node(company)
             rounds = self.data[company]
@@ -68,6 +82,7 @@ class Processor:
                 g.add_edges_from([(company, invest) for invest in rounds[round_]])
 
         self.graph = g
+        return self.graph
         # q(g.nodes())g
 
     def tao_one_mode_projection(self):
@@ -87,12 +102,17 @@ class Processor:
                     w += 1 / len(self.graph[l])
                 if len(common_neighbors) != 0:
                     self.projected_graph.add_edge(u, v, weight=w)
+        return self.projected_graph
 
     def rank(self):
         self.prank = nx.pagerank(self.projected_graph, weight='weight')
+        return self.prank
 
 
 print(__name__)
+
+
+
 
 if __name__ == "__main__":
     print(os.path.dirname(__file__))
@@ -107,7 +127,7 @@ if __name__ == "__main__":
 
     processor.tao_one_mode_projection()
 
-    print('ranking')
+    # print('ranking')
 
     # g = processor.projected_graph
     # pos = nx.spring_layout(g, k=3, scale=10)
@@ -121,5 +141,28 @@ if __name__ == "__main__":
     # pos, edge_labels=labels)
     # plt.show()
 
-    processor.rank()
+    #str -> float
+    #node -> pagerank
+
+
+    rank = processor.rank()
+
+    ranking_summary('./qingke_AG.txt', rank)
+    ranking_summary('./qingke_VC.txt', rank)
+    ranking_summary('./qingke_PE.txt', rank)
+
+    rank = nx.katz_centrality(processor.projected_graph, alpha=0.01, weight='weight', max_iter=3000)
+
+
+    # for name, rkval in sorted(rank.items(), key=lambda x: x[1], reverse=True):
+    #     print(name, rkval)
+
+    ranking_summary('./qingke_AG.txt', rank)
+    ranking_summary('./qingke_VC.txt', rank)
+    ranking_summary('./qingke_PE.txt', rank)
+
+
     # print(processor.projected_graph.edges())
+
+    # ::::::::::::::::::::::::::::::::::::::::::::::::::::
+

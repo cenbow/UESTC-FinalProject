@@ -2,4 +2,8 @@
 /src/WebCrawler/companies
 /src/WebCrawler/scawls
 /src/WebCrawler/invests
-
+__pycache__
+*.pyc
+.idea
+*.log
+*.pkl

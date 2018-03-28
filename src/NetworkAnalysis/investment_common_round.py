@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 import pandas as pd
+from cached import cached
 # import q
 
 # q("============new instance=============")
@@ -53,6 +54,7 @@ class Processor:
                 self.data[company][round_] = invests_
                 self.invests = self.invests.union(invests_)
 
+    @cached('round.bipartite')
     def build_graph(self):
         g = nx.Graph()
         # 二部图： L = {(company, round)}, R={investors}
@@ -65,7 +67,7 @@ class Processor:
                     for invest in rounds[round_]])
 
                 self.graph = g
-        # q(g.nodes())
+        return self.graph
 
     def similarity(self, a, b):
         t = set(self.graph.adj[a]).intersection(self.graph.adj[b])
@@ -75,6 +77,7 @@ class Processor:
             sum += 1/math.log(deg)
         return sum
 
+    @cached('round.projected.tao')
     def tao_one_mode_projection(self):
         """
         :param g: networkx.Bipartite
@@ -93,9 +96,12 @@ class Processor:
                     w += 1 / len(self.graph[l])
                 if len(common_neighbors) != 0:
                     self.projected_graph.add_edge(u, v, weight=w)
+        return self.projected_graph
 
+    @cached('round.pagerank')
     def rank(self):
         self.prank = nx.pagerank(self.projected_graph, weight='weight')
+        return self.prank
 
 
 print(__name__)

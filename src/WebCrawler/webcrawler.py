@@ -2,13 +2,14 @@ import requests
 import re
 import webbrowser
 from time import sleep
-import os, sys, q
+import os, sys
 import cookieparse
 import json
 import random
 import logging
 from progressbar import ProgressBar
 from datetime import datetime
+
 
 headers = {
     # 'connection': 'keep-alive',
@@ -25,7 +26,6 @@ invalid_chars = ('<', '>', ':', '\"', '/', '\\', '|', '?', '*')
 processed = 0
 increment = 0
 total = 1000
-
 
 def main():
     global total, increment, processed
