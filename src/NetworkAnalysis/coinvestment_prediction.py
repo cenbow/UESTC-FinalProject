@@ -1,11 +1,14 @@
-import os
+import os, sys, q
 from datetime import datetime
-from cached import cached, cache_res
+from utils.cached import cached, cache_res
 import networkx as nx
 import pandas as pd
 import numpy as np
 from collections import defaultdict
 import array, bisect, math
+import itertools as its
+
+sys.path.insert(0, '..')
 
 def dictify(dataframe):
     """
@@ -98,21 +101,23 @@ def tao_one_mode_projection(bigraph, projection):
             # common_neighbors = set(bigraph.adj[u]).intersection(set(bigraph.adj[v]))
             for l in nx.common_neighbors(bigraph, u, v):
                 # assume g is unweighted bigraph;
-                w += 1 / len(bigraph[l])
-            else:
-                continue # continue wrapper loop
-            projected_graph.add_edge(u, v, weight=w)
+                w += 1 / bigraph.degree(l)
+            if w != 0.0:
+                projected_graph.add_edge(u, v, weight=w)
     return projected_graph
 
 
 def sim(G, u, v):
-    return sum(1 / math.log(len(G.adj(w)), 2) for w in nx.common_neighbors(G,u,v))
+    common_neighbors = set(G.adj[u]).intersection(G.adj[v])
+    assert(all(u in G.adj[w] for w in common_neighbors))
+    assert(all(v in G.adj[w] for w in common_neighbors))
+    return sum(1 / math.log(G.degree[w], 2) for w in common_neighbors)
 
 
 df = pd.read_excel('InvestEvent_1.xlsx')
 traindata, testdata,  _, investors = dictify(df)
 
-train_bipartite = cache_res("company.bipartite.train", build_graph,traindata)
+train_bipartite = cache_res("company.bipartite.train", build_graph, traindata)
 # 有可能因为investors不一致而出错
 train_graph = cache_res('company.projected.train', tao_one_mode_projection, train_bipartite, investors)
 
@@ -122,39 +127,69 @@ test_graph = cache_res('company.projected.test', tao_one_mode_projection, test_b
 positive = array.array('d')
 negative = array.array('d')
 
+q("all graphs have been constructed")
+
 # calculating similarity for all pairs
 # store similarity value for the pair which has edge into array `positive`
 # ...
 
-for u in train_graph.nodes():
-    for v in train_graph.nodes():
-        if u == v: continue
-        if (u,v) in train_graph.edges():
-            positive.append(sim(u,v))
-        else:
-            negative.append(sim(u,v))
 
+loopCnt = 0
+temp_res = defaultdict(int)
+for u in train_graph.nodes():
+    if train_graph.degree(u) < 1: continue
+    delta = math.log(train_graph.degree(u), 2)
+    for pair in its.combinations(train_graph.adj[u], r = 2):
+        if pair[0] > pair[1]:
+            pair = (pair[1], pair[0])
+            q('unordered')
+        temp_res[pair] += delta
+        loopCnt += 1
+
+q(loopCnt)
+
+# for u in train_graph.nodes():
+#     for v in train_graph.nodes():
+#         if u == v: continue
+#         if (u,v) in train_graph.edges():
+#             positive.append(sim(train_graph, u,v))
+#         else:
+#             negative.append(sim(train_graph, u,v))
+
+for edge, s in temp_res.items():
+    if edge in train_graph.edges():
+        positive.append(s)
+    else:
+        negative.append(s)
+
+q('before sort')
+q(len(positive))
 positive = array.array('d', sorted(positive))
 negative = array.array('d', sorted(negative))
-scores = array.array('d')
+scores = []
+q('after sort')
+q(len(positive))
 
 # calculate all scores for all possible threshold value in `positve` array
 
 for idx, thr in enumerate(positive):
-    n_idx = bisect.bisec(negative, thr)
+    n_idx = bisect.bisect(negative, thr)
     tp_ratio = (len(positive) - idx) / len(positive)
     tn_ratio = n_idx / len(negative)
     # scores = [(threshold, score), (threshold1, score1), ...]
     scores.append((thr, tp_ratio * tn_ratio))
 
+q(len(scores))
+
 import operator
 # get the threshold with max scores
-opt_threshold, _ = max(scores, key=operator.getter(1))
+opt_threshold, _ = max(scores, key=operator.itemgetter(1))
+print(_)
 
 
 TP, FP, TN, FN = 0, 0, 0, 0
 for edge in test_graph.edges(): # positive
-    if sim(*edge) > opt_threshold:
+    if sim(test_graph, *edge) > opt_threshold:
         TP += 1
     else:
         FP += 1
@@ -162,7 +197,7 @@ for edge in test_graph.edges(): # positive
 for u in test_graph.nodes():
     for v in test_graph.nodes():
         if u == v: continue
-        if sim(u, v) < opt_threshold:
+        if sim(test_graph, u, v) < opt_threshold:
             TN += 1
         else:
             FN += 1
@@ -176,4 +211,4 @@ T	F	SUM
 %s	%s	%s
 """
 
-print(fmt%(TP, FP, TP+FP, TN, FN, TN+FN, TP+TN, FP+FN, TP+FP+TN+FN))
+print(fmt % (TP, FP, TP+FP, TN, FN, TN+FN, TP+TN, FP+FN, TP+FP+TN+FN))

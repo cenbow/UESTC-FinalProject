@@ -1,13 +1,15 @@
+import os, sys
+sys.path.insert(0, '..')
 import requests
 import re
 import webbrowser
 from time import sleep
-import os, sys
-import cookieparse
+
+from WebCrawler import cookieparse
 import json
 import random
 import logging
-from progressbar import ProgressBar
+from utils.progressbar import ProgressBar
 from datetime import datetime
 
 
