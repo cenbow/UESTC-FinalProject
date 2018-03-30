@@ -1,0 +1,2 @@
+starting program
+finished reading train graph file

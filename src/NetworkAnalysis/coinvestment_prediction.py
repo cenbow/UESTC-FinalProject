@@ -7,6 +7,7 @@ import numpy as np
 from collections import defaultdict
 import array, bisect, math
 import itertools as its
+from numba import jit
 
 sys.path.insert(0, '..')
 
@@ -107,6 +108,7 @@ def tao_one_mode_projection(bigraph, projection):
     return projected_graph
 
 
+@jit
 def sim(G, u, v):
     common_neighbors = set(G.adj[u]).intersection(G.adj[v])
     assert(all(u in G.adj[w] for w in common_neighbors))
@@ -124,6 +126,19 @@ train_graph = cache_res('company.projected.train', tao_one_mode_projection, trai
 test_bipartite = cache_res('company.bipartite.test', build_graph, testdata)
 test_graph = cache_res('company.projected.test', tao_one_mode_projection, test_bipartite, investors)
 
+
+# store graph edges for cpp analysis
+with open('test_graph.txt', 'w') as output:
+    output.write('%d\t%d' % (nx.number_of_nodes(test_graph), nx.number_of_edges(test_graph)))
+    for e in test_graph.edges():
+        output.write("%s\t%s\t%s\n"%(e[0], e[1], nx.get_edge_attributes(test_graph, 'weight')[e]))
+
+with open('train_graph.txt', 'w') as output:
+    output.write('%d\t%d' % (nx.number_of_nodes(train_graph), nx.number_of_edges(train_graph)))
+
+    for e in train_graph.edges():
+        output.write("%s\t%s\t%s\n"%(e[0], e[1], nx.get_edge_attributes(train_graph, 'weight')[e]))
+
 positive = array.array('d')
 negative = array.array('d')
 
@@ -136,17 +151,22 @@ q("all graphs have been constructed")
 
 loopCnt = 0
 temp_res = defaultdict(int)
-for u in train_graph.nodes():
-    if train_graph.degree(u) < 1: continue
-    delta = math.log(train_graph.degree(u), 2)
-    for pair in its.combinations(train_graph.adj[u], r = 2):
-        if pair[0] > pair[1]:
-            pair = (pair[1], pair[0])
-            q('unordered')
-        temp_res[pair] += delta
-        loopCnt += 1
 
-q(loopCnt)
+@jit
+def calculate_sim_for_all_pairs(graph, res):
+    for u in graph.nodes():
+        if graph.degree(u) < 1: continue
+        delta = math.log(graph.degree(u), 2)
+        for pair in its.combinations(graph.adj[u], r=2):
+            if pair[0] > pair[1]:
+                pair = (pair[1], pair[0])
+                # q('unordered')
+            res[pair] += delta
+            # loopCnt += 1
+
+
+calculate_sim_for_all_pairs(train_graph, temp_res)
+# q(loopCnt)
 
 # for u in train_graph.nodes():
 #     for v in train_graph.nodes():
