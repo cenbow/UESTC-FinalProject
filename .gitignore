@@ -7,3 +7,17 @@ __pycache__
 .idea
 *.log
 *.pkl
+*.exe
+*.exe
+*.db
+*.opendb
+src/cppNetworkAnalysis/.vs/GraphAnalysis/v15/.suo
+*.tlog
+src/WebCrawler/companies.7z
+*.pdb
+src/cppNetworkAnalysis/Debug/GraphUniteTest.pdb
+src/cppNetworkAnalysis/Debug/GraphUniteTest.dll
+src/cppNetworkAnalysis/Debug/GraphAnalysis.pdb
+*.obj
+*.tlog
+*.tlog

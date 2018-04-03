@@ -1,22 +1,39 @@
 // GraphAnalysis.cpp: 定义控制台应用程序的入口点。
 //
-#include "stdafx.h"
+//#include "stdafx.h"
 #include <vector>
 #include <cstring>
 #include <fstream>
 #include <cmath>
 #include <random>
 #include <cstdio>
-#include "graph.h"
 #include <iostream>
-#include "algorithm"
-#include "logger.h"
+#include <algorithm>
 #include <map>
 #include <cstdlib>
 #include <cassert>
+
+#ifdef __GNUC__
+#define sprintf_my sprintf
+#else
+#define sprintf_my sprintf_s
+#endif
+
+#include "graph.h"
+#include "logger.h"
 using namespace std;
 
 
+class Result
+{
+public:
+	int tp = 0, fp = 0, tn = 0, fn = 0;
+	double pricision() { return double(tp) / (tp + fp); }
+	double recall() { return double(tp) / (tp + fn); }
+	double tpr() { return double(tp) / (tp + fn); }
+	double fpr() { return double(fp) / (fp + tn); }
+	pair<double, double> roc_pair() { return make_pair(fpr(), tpr()); }
+};
 
 
 int main()
@@ -29,7 +46,7 @@ int main()
 	 * 之后每一行都包含三个数u,v,w表示一条有向边
 	 */
 
-	/*=========================
+	/*==========================
 	construct graph for training
 	===========================*/
 	ifstream file("./train_graph1.txt");
@@ -57,12 +74,12 @@ int main()
 	{
 		int deg = projected_graph.adjacency_list[nd].size();
 		double t = log2(deg);
-		
+
 		auto &adj = projected_graph.adjacency_list[nd];
 		for (auto i = adj.begin(); i != adj.end(); i++)
 			for (auto j = i + 1; j != adj.end(); j++)
 			{
-				assert(i->v <= j->v);//TODO:有重边？
+				assert(i->v <= j->v); //FIXME:有重边？
 				mtr[(i->v) * size_node + (j->v)] += t;
 			}
 	}
@@ -117,13 +134,13 @@ int main()
 
 	//debug info
 	char tmp_buf[100];
-	sprintf_s(tmp_buf, "max score: %.4lf", max_score);
+	sprintf_my(tmp_buf, "max score: %.4lf", max_score);
 	logger.debug(tmp_buf);
-	sprintf_s(tmp_buf, "tp_ratio: %.4lf, tn_ratio: %.4lf\n", tp_ratio, tn_ratio);
+	sprintf_my(tmp_buf, "tp_ratio: %.4lf, tn_ratio: %.4lf\n", tp_ratio, tn_ratio);
 	logger.debug(tmp_buf);
 
 
-	/*=========================
+	/*===========================
 	  construct graph for testing
 	============================*/
 	ifstream file2("./test_graph1.txt");
@@ -158,38 +175,52 @@ int main()
 	//}
 
 	int cnt_p = 0, cnt_n = 0, cnt_tp = 0, cnt_tn = 0;
-	for (int i = 0; i < 1000000; i++)
+	int cnt_tp0 = 0, cnt_tn0 = 0;
+	for (int i = 0; i < 100000; i++)
 	{
 		int a = rand() % (size_node - 1);
 		int b = a + 1 + rand() % (size_node - a - 1);
-		//sample edge (a, b) 
+		//sample edge (a, b)
 		if (graph_after.contain(Edge(a, b, 0.1)))
 		{
 			cnt_p++;
 			//if similarity(train_graph, a, b) > threshold, set true
 			if (mtr[a + size_node2 + b] > threshold)
 				cnt_tp++;
+			//predict true if a and b has edge before.
+			if (projected_graph.contain(Edge(a, b, 0.1)))
+				cnt_tp0++;
 		}
 		else {
 			cnt_n++;
 			if (mtr[a + size_node2 + b] < threshold)
 				cnt_tn++;
+			if (!projected_graph.contain(Edge(a, b, 0.1)))
+				cnt_tn0++;
 		}
 	}
 
-	sprintf_s(tmp_buf, "test -> tp: %d\n", cnt_tp);
+	sprintf_my(tmp_buf, "test -> tp: %d\n", cnt_tp);
 	logger.debug(tmp_buf);
-	sprintf_s(tmp_buf, "test -> tn: %d\n", cnt_tn);
+	sprintf_my(tmp_buf, "test -> tn: %d\n", cnt_tn);
 	logger.debug(tmp_buf);
-	sprintf_s(tmp_buf, "test -> p: %d\n", cnt_p);
+	sprintf_my(tmp_buf, "test -> p: %d\n", cnt_p);
 	logger.debug(tmp_buf);
-	sprintf_s(tmp_buf, "test -> n: %d\n", cnt_n);
+	sprintf_my(tmp_buf, "test -> n: %d\n", cnt_n);
 	logger.debug(tmp_buf);
 
-	delete[] mtr;
+	
 	printf("tp_ratio: %lf\n tn_ratio: %lf\n", double(cnt_tp) / cnt_p, double(cnt_tn) / cnt_n);
+	printf("simple: tp_ratio: %lf\n tn_ratio: %lf\n", double(cnt_tp0) / cnt_p, double(cnt_tn0) / cnt_n);
+
+	/*====================
+	calculating AUC of ROC
+	====================*/
+
+	
+
+	delete[] mtr;
 
 	system("pause");
 	return 0;
 }
-
