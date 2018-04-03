@@ -1,6 +1,6 @@
 // GraphAnalysis.cpp: 定义控制台应用程序的入口点。
 //
-//#include "stdafx.h"
+#include "stdafx.h"
 #include <vector>
 #include <cstring>
 #include <fstream>
@@ -209,7 +209,7 @@ int main()
 	sprintf_my(tmp_buf, "test -> n: %d\n", cnt_n);
 	logger.debug(tmp_buf);
 
-	
+
 	printf("tp_ratio: %lf\n tn_ratio: %lf\n", double(cnt_tp) / cnt_p, double(cnt_tn) / cnt_n);
 	printf("simple: tp_ratio: %lf\n tn_ratio: %lf\n", double(cnt_tp0) / cnt_p, double(cnt_tn0) / cnt_n);
 
@@ -217,7 +217,7 @@ int main()
 	calculating AUC of ROC
 	====================*/
 
-	
+
 
 	delete[] mtr;
 
