@@ -7,7 +7,7 @@ import numpy as np
 from collections import defaultdict
 import array, bisect, math
 import itertools as its
-from numba import jit
+# from numba import jit
 
 sys.path.insert(0, '..')
 
@@ -98,22 +98,26 @@ def tao_one_mode_projection(bigraph, projection):
     projection &= bigraph.nodes()
     for u in projection:
         for v in projection:
+            if u == v: continue
             w = 0.0
             # common_neighbors = set(bigraph.adj[u]).intersection(set(bigraph.adj[v]))
+            has_cn = False
             for l in nx.common_neighbors(bigraph, u, v):
                 # assume g is unweighted bigraph;
+                has_cn = True
                 w += 1 / bigraph.degree(l)
-            if w != 0.0:
+            w /= bigraph.degree(v);
+            if has_cn:
                 projected_graph.add_edge(u, v, weight=w)
     return projected_graph
 
 
-@jit
+# @jit
 def sim(G, u, v):
     common_neighbors = set(G.adj[u]).intersection(G.adj[v])
     assert(all(u in G.adj[w] for w in common_neighbors))
     assert(all(v in G.adj[w] for w in common_neighbors))
-    return sum(1 / math.log(G.degree[w], 2) for w in common_neighbors)
+    return sum(1 / math.log(G.degree(w), 2) for w in common_neighbors)
 
 
 df = pd.read_excel('InvestEvent_1.xlsx')
@@ -129,7 +133,7 @@ test_graph = cache_res('company.projected.test', tao_one_mode_projection, test_b
 
 # store graph edges for cpp analysis
 with open('test_graph.txt', 'w') as output:
-    output.write('%d\t%d' % (nx.number_of_nodes(test_graph), nx.number_of_edges(test_graph)))
+    output.write('%d\t%d\n' % (nx.number_of_nodes(test_graph), nx.number_of_edges(test_graph)))
     for e in test_graph.edges():
         output.write("%s\t%s\t%s\n"%(e[0], e[1], nx.get_edge_attributes(test_graph, 'weight')[e]))
 
@@ -138,6 +142,9 @@ with open('train_graph.txt', 'w') as output:
 
     for e in train_graph.edges():
         output.write("%s\t%s\t%s\n"%(e[0], e[1], nx.get_edge_attributes(train_graph, 'weight')[e]))
+
+print("finished writing test_graph.txt and train_graph.txt")
+exit()
 
 positive = array.array('d')
 negative = array.array('d')
@@ -152,7 +159,7 @@ q("all graphs have been constructed")
 loopCnt = 0
 temp_res = defaultdict(int)
 
-@jit
+# @jit
 def calculate_sim_for_all_pairs(graph, res):
     for u in graph.nodes():
         if graph.degree(u) < 1: continue

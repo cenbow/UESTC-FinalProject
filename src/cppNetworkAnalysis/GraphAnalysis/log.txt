@@ -1,15 +1,1 @@
 starting program
-finished reading train graph file
-finished calculating pairwise similarity!
-max score: 0.9885
-tp_ratio: 1.0000, tn_ratio: 0.9885
-
-finished reading test graph file
-test -> tp: 5
-
-test -> tn: 94861
-
-test -> p: 12
-
-test -> n: 99988
-

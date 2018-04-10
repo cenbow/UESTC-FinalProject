@@ -1,7 +1,7 @@
 {
-    "list": "unprocessed.txt",
-    "period": 10,
-    "pattern": "4/5",
+    "list": "companies.txt",
+    "period": 12,
+    "pattern": "1/5",
     "logger": "companies.log",
     "total": 25140,
     "output_dir": "companies",

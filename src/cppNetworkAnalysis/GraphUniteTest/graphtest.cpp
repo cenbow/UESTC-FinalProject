@@ -10,11 +10,11 @@
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace GraphUniteTest
-{		
+{
 	TEST_CLASS(UnitTest1)
 	{
 	public:
-		
+
 		TEST_METHOD(ArrayConstruction)
 		{
 			// TODO: Your test code here
@@ -119,7 +119,7 @@ namespace GraphUniteTest
 			int u = rand() % (projected_graph.size_node - 1);
 			int v = u + 1 + rand() % (projected_graph.size_node - u - 1);
 			projected_graph.rearrage();
-			
+
 			auto &adj_u = projected_graph.adjacency_list[u];
 			auto &adj_v = projected_graph.adjacency_list[v];
 			double res = 0;
@@ -133,5 +133,31 @@ namespace GraphUniteTest
 			}
 			Assert::AreEqual(res, mtr[u * projected_graph.size_node + v]);
 		}
+		TEST_METHOD(SearchEdge)
+		{
+			const int NUM_NODES = 500;
+			Graph g(NUM_NODES);
+			for (int i = 0; i < NUM_NODES; i++)
+			{
+				for (int j = i + 1; j < NUM_NODES; j++)
+				{
+					double w = rand() % 100;
+					g.addEdge(Edge(i, j, w));
+					g.addEdge(Edge(j, i, w));
+				}
+			}
+			g.rearrage();
+			int test_cas = 1000;
+			while (test_cas--)
+			{
+				int i = rand() % (NUM_NODES - 1);
+				if (NUM_NODES == i + 2) continue;
+				int j = i + 1 + (rand() % (NUM_NODES - i - 2));
+				double a = g.get_edge(i, j).w;
+				double b = g.get_edge(j, i).w;
+				Assert::AreEqual(a, b);
+			}
+		}
 	};
+
 }

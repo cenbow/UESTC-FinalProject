@@ -2,6 +2,9 @@
 #include <functional>
 #include "algorithm"
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <boost/format.hpp>
 using namespace std;
 
 class Edge
@@ -10,7 +13,7 @@ public:
     int u, v;
     double w;
     Edge() {}
-    Edge(int a, int b, double c) :u(a), v(b), w(c) {}
+    Edge(int a, int b, double c=0.0) :u(a), v(b), w(c) {}
     bool operator==(const Edge &other)
     {
         return this->u == other.u && this->v == other.v;
@@ -129,6 +132,22 @@ public:
     {
         adjacency_list.resize(size_node = size_node_);
     }
+    Graph(string filename)
+    {
+        ifstream file(filename);
+        int size_edge;
+        file >> size_node >> size_edge;
+        adjacency_list.resize(size_node);
+        for (int i = 0; i < size_edge; i++)
+        {
+            double w;
+            int u, v;
+            file >> u >> v >> w;
+            addEdge(Edge(u, v, w));
+        }
+        file.close();
+        rearrage();
+    }
     void addEdge(const Edge &e)
     {
         adjacency_list[e.u].push_back(e);
@@ -152,5 +171,18 @@ public:
             return false;
         else
             return true;
+    }
+    Edge &get_edge(int u, int v)
+    {
+        Edge * idx = bisearch(
+            adjacency_list[u].begin(),
+            adjacency_list[u].end(),
+            Edge(u,v),
+            [](const Edge& a, const Edge& b) { return a.v - b.v; });
+        if (idx == adjacency_list[u].end() || *idx != Edge(u, v)) {
+            throw out_of_range(str(boost::format{"Cannot find edge (%1%->%2%)\n"} % u % v));
+        }
+
+        return *idx;
     }
 };
