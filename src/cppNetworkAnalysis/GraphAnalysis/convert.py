@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     with open(sys.argv[1], "r", encoding='utf-8') as file:
         with open(sys.argv[2], 'w') as output:
-            for idx, ln in enumerate(ProgressBar(file.readlines(), total_lines)):
+            for idx, ln in enumerate(file.readlines()):
                 if idx == 0:
                     output.write(ln)
                     continue

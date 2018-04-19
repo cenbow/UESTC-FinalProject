@@ -75,7 +75,7 @@ def main():
                 logger.error("Invalid name to create file: %s" % name)
                 continue
 
-            sleep(abs(random.normalvariate(config['period'], 5)))
+            sleep(max(10, abs(random.normalvariate(config['period'], 5))))
             for i in range(13):
                 try:
                     response = requests.get(

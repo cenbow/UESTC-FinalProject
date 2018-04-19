@@ -192,6 +192,7 @@ int main()
 	/*===========================
 	construct graph for testing
 	============================*/
+	printf("========================");
 	Graph test_graph("./test_graph1.txt");
 
 

@@ -10,14 +10,14 @@ public:
 		WARNING = 500,
 		ERROR = 1000
 	};
-	
-	Logger(string filepath, Level level) 
+
+	Logger(string filepath, Level level)
 	{
 		log_file = ofstream(filepath);
 		level_ = level;
 		fmt_ = "{time} {level}: {msg}\n";
 	}
-	
+
 	void logging(Level level, string msg)
 	{
 		if (level < level_) return;
